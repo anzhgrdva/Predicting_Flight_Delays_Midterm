@@ -250,3 +250,42 @@ def drop_features(df,threshold=100, show_update=True):
     print(f'Columns dropped: {to_drop}')
     if show_update == True:
         return explore(df,id=0,print_n_unique=False, printValues=False)
+
+# create function to convert dates from string to datetime objects
+def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
+    """ 
+    Take the dates in a dateframes to create new columns:
+        _date_standard: Datetime data 
+        _year
+        _month
+        _1_week_ago
+        _1_year_ago
+
+    Parmaters:
+    - df: Dataframe.
+    - date_column: Name of the column containing the date strings.
+    - Format: Original date format in the dateframe. Default: '%d.%m.%Y'
+    
+    Make sure to do the following import: 
+    from datetime import datetime
+    """
+    import pandas as pd
+    date_column=str(date_column)
+    
+    date = pd.to_datetime(df[date_column],
+        format=format)
+    df[str(date_column+'_dt')] = date # date
+    df[str(date_column+'_year')] = date.dt.to_period('Y') # year
+    df[str(date_column+'_year_month')] = date.dt.to_period('M') # month
+    df[str(date_column+'_Monday_of_week')] = date.dt.to_period('W').dt.start_time # Monday of the week
+    df[str(date_column+'_week_number')] = date.dt.isocalendar().week # week of the year
+
+
+    df[str(date_column+'_t-1_week_week_number')] = (date - pd.Timedelta(days=7)).dt.isocalendar().week # previous week's week number of the year 
+    df[str(date_column+'_t-1_week_date')] = date - pd.Timedelta(days=7) # 7 days before
+
+    df[str(date_column+'_t-1_year_year')] = (date - pd.Timedelta(days=365)).dt.to_period('Y') # Previous year
+    df[str(date_column+'_t-1_year_month')] = (date - pd.Timedelta(days=365)).dt.to_period('M') # Same month 1 year ago
+    df[str(date_column+'_t-1_year_day')] = date - pd.Timedelta(days=365) # 365 days before
+    
+    return df
