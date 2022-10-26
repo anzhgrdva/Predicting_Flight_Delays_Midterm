@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 def load_csv(filepath,filename,column1_as_index=False):
     """
     Load a csv file as a dataframe using specified file path copied from windows file explorer.
@@ -191,9 +190,7 @@ def plot_int_hist(df, columns=None, color=None):
     fig.update_layout(height=300*round((len(columns)+.5)/2), 
         showlegend=False,barmode='overlay')
     fig.show()
-
-
-    
+   
 def correlation(df):
     """
     Plot the correlation matrix.
@@ -289,3 +286,59 @@ def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
     df[str(date_column+'_t-1_year_day')] = date - pd.Timedelta(days=365) # 365 days before
     
     return df
+
+# function to convert time to datetime objects
+def date_columns(df,time_column,format='%H%M'):
+    """ 
+    Take the time in a dateframes to create new columns:
+        _sin
+        _cos
+
+    Parmaters:
+    - df: Dataframe.
+    - time_column (string or list of strings): Name of the column containing the time.
+    - Format: Original time format in the dateframe. Default is in flight format: '%H%M'
+    
+    Make sure to do the following import: 
+    from datetime import datetime
+    """
+    if type(time_column) == str:
+        time_column = [time_column]
+    for column in time_column:
+        df[str(column+'_time')] = pd.to_datetime(df[column],format=format)
+   
+    return df
+
+time_column = ['crs_dep_time','crs_arr_time']
+date_columns(flights,time_column,format='%H%M').filter(regex='time')
+
+def date_columns(df,column,format='%H%M',dropna=False, fillna=1):
+    """ 
+    Take the time in a dateframe to create new column with date time object.
+    Any null values will be replaced with 1. 
+
+    ** Note 2022-10-26 8:54**: For flights data, only works on 'crs_arr_time' column.
+    Raises error for 'dep_time', 'crs_arr_time', 'arr_time' columns.
+
+    Parmaters:
+    - df: Dataframe.
+    - column (string): Name of the column containing the time.
+    - Format: Original time format in the dateframe. Default is in flight format: '%H%M'
+    - dropna (bool): If true, drop rows where the column value is null.
+    - fillna (int): If true, fill missing values with the given number.
+    
+    Make sure to do the following import: 
+    from datetime import datetime
+    """
+    if dropna == True:
+        df.dropna(subset=column, inplace=True)
+    else:
+        df[column].fillna(value=fill_na, inplace=True)
+    df[column].fillna(value=1, inplace=True)
+    df[str(column+'_dt')] = df[column].astype(int).astype(str).apply(lambda x: datetime.strptime(x.zfill(3), "%H%M"))
+
+    return df
+
+
+
+    
