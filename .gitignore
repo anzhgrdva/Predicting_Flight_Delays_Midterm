@@ -1,2 +1,4 @@
 # macos Files
 .DS_Store
+data/flights-2022-10-26_0906.csv
+data/flights_clean_2022-10-26_1247.csv
