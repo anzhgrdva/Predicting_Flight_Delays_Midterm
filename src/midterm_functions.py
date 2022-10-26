@@ -339,6 +339,58 @@ def date_columns(df,column,format='%H%M',dropna=False, fillna=1):
 
     return df
 
+def aggregate(data,columns,groupby,agg='mean'):
+    """
+    Get the average value.
 
+    Parmaters:
+    - Data: `Dataframe groupby().apply()` argument.
+    - Columns: Column names on which to perform calculations. Use a list for multiple.
+    - groupby (string): String to append to the end of the new columns to indicate
+        how data were grouped.
+    - agg (string, optional): Aggregate function to apply. Default is mean.
+    """
 
+    for column in columns:
+        data.loc[:,str('mean_'+column+'_'+groupby)] = data.loc[:,column].agg(agg)
+
+    return data
+
+# create function to convert dates from string to datetime objects
+def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
+    """ 
+    Take the dates in a dateframes to create new columns:
+        _date_standard: Datetime data 
+        _year
+        _month
+        _1_week_ago
+        _1_year_ago
+
+    Parmaters:
+    - df: Dataframe.
+    - date_column: Name of the column containing the date strings.
+    - Format: Original date format in the dateframe. Default: '%d.%m.%Y'
     
+    Make sure to do the following import: 
+    from datetime import datetime
+    """
+    import pandas as pd
+    date_column=str(date_column)
+    
+    date = pd.to_datetime(df[date_column],
+        format=format)
+    df[str(date_column+'_dt')] = date # date
+    df[str(date_column+'_year')] = date.dt.to_period('Y') # year
+    df[str(date_column+'_year_month')] = date.dt.to_period('M') # month
+    df[str(date_column+'_Monday_of_week')] = date.dt.to_period('W').dt.start_time # Monday of the week
+    df[str(date_column+'_week_number')] = date.dt.isocalendar().week # week of the year
+
+
+    df[str(date_column+'_t-1_week_week_number')] = (date - pd.Timedelta(days=7)).dt.isocalendar().week # previous week's week number of the year 
+    df[str(date_column+'_t-1_week_date')] = date - pd.Timedelta(days=7) # 7 days before
+
+    df[str(date_column+'_t-1_year_year')] = (date - pd.Timedelta(days=365)).dt.to_period('Y') # Previous year
+    df[str(date_column+'_t-1_year_month')] = (date - pd.Timedelta(days=365)).dt.to_period('M') # Same month 1 year ago
+    df[str(date_column+'_t-1_year_day')] = date - pd.Timedelta(days=365) # 365 days before
+    
+    return df
