@@ -364,3 +364,5 @@ def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
         if fill_w_mean==True:
             df[column_to_fill].fillna(df[column].agg('mean'), inplace=True)
     return df
+
+    

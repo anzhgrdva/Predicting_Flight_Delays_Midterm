@@ -70,3 +70,21 @@ class supervised:
         ConfusionMatrixDisplay.from_estimator(best_model, self.X_test, self.y_test)
         RocCurveDisplay.from_estimator(best_model, self.X_test, self.y_test)
         return best_model
+
+# Example on how to call it for  Logistical regression
+param_lr = {
+    # 'penalty': ['l1','l2', 'elasticnet'],
+    'C': C_list,
+    'max_iter' : max_iter_list,
+    'class_weight': [None, 'balanced']
+}
+
+lr = LogisticRegression(random_state=0)
+lr_attributes = supervised(df, lr, param_lr, model_name='logistical regression')
+best_lr = lr_attributes.get_best_model()
+
+# Save the model
+model = best_lr
+
+filename = 'model_best_lr.sav'
+pickle.dump(model, open(filename, 'wb'))
