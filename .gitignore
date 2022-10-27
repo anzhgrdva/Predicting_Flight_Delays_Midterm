@@ -5,3 +5,6 @@ data/flights_clean_2022-10-26_1247.csv
 data/flights_cleaned_no_outliers_2022-10-26_1451.csv
 data/flights_modeling_2022-10-26_2322.csv
 data/flights_silvia_2022-10-26_2220.csv
+models/*.sav
+__pycache__/
+.ipynb_checkpoints/
