@@ -1,3 +1,19 @@
+from sklearn.ensemble import RandomForestRegressor
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import RandomizedSearchCV
+
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import r2_score
+
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.preprocessing import StandardScaler
+
+
+
 # Define a class
 class supervised:
     """
@@ -33,7 +49,8 @@ class supervised:
 
     def get_best_model(self,scaled=True):
         if scaled==True:
-            scaler = MinMaxScaler()
+            # scaler = MinMaxScaler()
+            scaler = StandardScaler()
             self.X_train = scaler.fit_transform(self.X_train_pre)
             self.X_test = scaler.transform(self.X_test_pre)
             print('**Data has been scaled.**')
@@ -88,3 +105,26 @@ model = best_lr
 
 filename = 'model_best_lr.sav'
 pickle.dump(model, open(filename, 'wb'))
+
+
+
+
+
+
+# ## Silvia 2022-10-25 20:48 Example of how to call the custom function for supervised learning
+# param_lr = {
+#     # 'penalty': ['l1','l2', 'elasticnet'],
+#     'C': C_list,
+#     'max_iter' : max_iter_list,
+#     'class_weight': [None, 'balanced']
+# }
+
+# lr = LogisticRegression(random_state=0)
+# lr_attributes = supervised(df, lr, param_lr, model_name='logistical regression')
+# best_lr = lr_attributes.get_best_model()
+
+# # Save the model
+# model = best_lr
+
+# filename = 'model_best_lr.sav'
+# pickle.dump(model, open(filename, 'wb'))
