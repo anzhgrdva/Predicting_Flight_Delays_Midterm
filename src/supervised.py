@@ -1,9 +1,3 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pickle
-import xgboost
 from sklearn.ensemble import RandomForestRegressor
 
 
@@ -55,7 +49,8 @@ class supervised:
 
     def get_best_model(self,scaled=True):
         if scaled==True:
-            scaler = MinMaxScaler()
+            # scaler = MinMaxScaler()
+            scaler = StandardScaler()
             self.X_train = scaler.fit_transform(self.X_train_pre)
             self.X_test = scaler.transform(self.X_test_pre)
             print('**Data has been scaled.**')
