@@ -1,3 +1,4 @@
+from re import X
 from sklearn.ensemble import RandomForestRegressor
 
 
@@ -37,20 +38,20 @@ class supervised:
     Returns:
     * Best model from random search
     """
-    def __init__(self, df, estimator, model_name):
-        X = df[df.columns[:-1]]
-        y = df[df.columns[-1]]
+    
+    
+    def __init__(self, X, y, estimator, param_distributions, model_name):
         X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8,random_state=0)
         self.X_train_pre = X_train
         self.X_test_pre =  X_test
         self.y_train = y_train
         self.y_test =  y_test
         self.estimator = estimator
+        self.params = param_distributions
         self.model_name = model_name
 
     def get_best_model(self,scaled=True):
         if scaled==True:
-            # scaler = MinMaxScaler()
             scaler = StandardScaler()
             self.X_train = scaler.fit_transform(self.X_train_pre)
             self.X_test = scaler.transform(self.X_test_pre)
@@ -59,13 +60,15 @@ class supervised:
             self.X_train = self.X_train_pre
             self.X_test = self.X_test_pre
             print('**Data not scaled**')
-        search = RandomizedSearchCV(self.estimator, random_state=0,n_jobs=-2,scoring='recall')
+        search = RandomizedSearchCV(self.estimator, param_distributions=self.params, random_state=0,n_jobs=-2,scoring='recall')
         search.fit(self.X_train, self.y_train)
         best_model = search.best_estimator_
 
         y_pred = best_model.predict(self.X_test)
         y_pred_train = best_model.predict(self.X_train)
-
+    
+    
+    
         # Metrics for test data
 
         rmse = mean_squared_error(self.y_test, y_pred, squared=False)
@@ -87,23 +90,23 @@ class supervised:
 
         return best_model
 
-# Example on how to call it for  Logistical regression
-param_lr = {
-    # 'penalty': ['l1','l2', 'elasticnet'],
-    'C': C_list,
-    'max_iter' : max_iter_list,
-    'class_weight': [None, 'balanced']
-}
+# # Example on how to call it for  Logistical regression
+# param_lr = {
+#     # 'penalty': ['l1','l2', 'elasticnet'],
+#     'C': C_list,
+#     'max_iter' : max_iter_list,
+#     'class_weight': [None, 'balanced']
+# }
 
-lr = LogisticRegression(random_state=0)
-lr_attributes = supervised(df, lr, param_lr, model_name='logistical regression')
-best_lr = lr_attributes.get_best_model()
+# lr = LogisticRegression(random_state=0)
+# lr_attributes = supervised(df, lr, param_lr, model_name='logistical regression')
+# best_lr = lr_attributes.get_best_model()
 
-# Save the model
-model = best_lr
+# # Save the model
+# model = best_lr
 
-filename = 'model_best_lr.sav'
-pickle.dump(model, open(filename, 'wb'))
+# filename = 'model_best_lr.sav'
+# pickle.dump(model, open(filename, 'wb'))
 
 
 
