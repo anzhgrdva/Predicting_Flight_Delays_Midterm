@@ -70,3 +70,26 @@ class supervised:
         ConfusionMatrixDisplay.from_estimator(best_model, self.X_test, self.y_test)
         RocCurveDisplay.from_estimator(best_model, self.X_test, self.y_test)
         return best_model
+
+
+
+
+
+
+## Silvia 2022-10-25 20:48 Example of how to call the custom function for supervised learning
+param_lr = {
+    # 'penalty': ['l1','l2', 'elasticnet'],
+    'C': C_list,
+    'max_iter' : max_iter_list,
+    'class_weight': [None, 'balanced']
+}
+
+lr = LogisticRegression(random_state=0)
+lr_attributes = supervised(df, lr, param_lr, model_name='logistical regression')
+best_lr = lr_attributes.get_best_model()
+
+# Save the model
+model = best_lr
+
+filename = 'model_best_lr.sav'
+pickle.dump(model, open(filename, 'wb'))
