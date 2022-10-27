@@ -9,7 +9,6 @@ For ease, name the flights dataframe as 'flights'.
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as st
-
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -128,44 +127,23 @@ plot_int_hist(flights.filter(regex=r'time|cancelled'),color='cancelled')
 correlation(fuel.filter(regex='gallon')) # fuel table
 
 
-
-# HANDLING MISSING VALUES
-    # FUEL TABLE
-    # Fill missing total_gallons values with sum of tdom_gallons and tint_gallons
-fuel.fillna(fuel['tdomt_gallons'] + fuel['tint_gallons'], inplace=True)
-print((fuel.filter(regex='gallons') == 0).sum(axis=0)) # Check
-fuel.head()
-    # Drop rows with total_gallons = 0 because the data is incorrect
-print('Number of rows: ',len(fuel))
-fuel_rows_to_drop = fuel['total_gallons'] == 0
-fuel.drop(fuel[fuel_rows_to_drop].index,inplace=True)
-print('Number of rows: ',len(fuel))
-
-# FLIGHTS TABLE TRAINING DATA: Fill mean flight historical/forecasting delay data. 
-dict = {
-    'mean_dep_delay_carrier_origin_date_t-1_week': 'mean_dep_delay_carrier_origin_week', 
-    'mean_arr_delay_carrier_origin_date_t-1_week': 'mean_arr_delay_carrier_origin_week',
-    'mean_dep_delay_carrier_origin_date_t-1_week_week_number': 'mean_dep_delay_carrier_origin_week',
-    'mean_arr_delay_carrier_origin_date_t-1_week_week_number': 'mean_arr_delay_carrier_origin_week',
-    # 'mean_dep_delay_carrier_origin_datet-1_year_week': 'mean_dep_delay_carrier_origin_week', # DON'T USE THIS FOR NOW
-    # 'mean_arr_delay_carrier_origin_datet-1_year_week': 'mean_arr_delay_carrier_origin_week', # DON'T USE THIS FOR NOW
-    # 'mean_dep_delay_carrier_origin_date_t-1_year_month': 'mean_dep_delay_carrier_origin_month', # DON'T USE THIS FOR NOW
-    # 'mean_arr_delay_carrier_origin_date_t-1_year_month': 'mean_arr_delay_carrier_origin_month' # DON'T USE THIS FOR NOW
-}
-fill_missing(flights,dict,fill_w_mean=False) # Call the function
-explore(flights.filter(regex='mean')) # Recheck missing values
-
 # FLIGHTS: FEATURE SELECTION AND ENGINEERING
 from datetime import timedelta
 import pandas as pd
 import numpy as np
 
+
+    # CONVERT crs_dep_time TO DATETIME OBJECT
+column = 'crs_dep_time'
+flights = time_columns(flights,column,format='%H%M',dropna=True)
+
+
     # To flights table, add columns with the  features for date and forecasting date
-date_forecast_columns(flights,date_column='fl_date',format='%Y-%m-%d')
+flights = date_forecast_columns(flights,date_column='fl_date',format='%Y-%m-%d')
 
     # Calculate mean dep_delay and arr_delay for a given carrier 
 groupby_columns_1 = ['mkt_carrier', 'origin_airport_id']
-columns = ['dep_delay', 'arr_delay']
+columns = ['dep_delay', 'arr_delay'] # columns on which to get aggregate data
 flights = flights.groupby(
     groupby_columns_1,group_keys=False).apply( # for a given month
         lambda x: aggregate(x,columns,'carrier_origin_month').groupby(
@@ -174,7 +152,9 @@ flights = flights.groupby(
     groupby_columns_1,group_keys=False).apply( # for a given DAY OF YEAR
         lambda x: aggregate(x,columns,'carrier_origin_date')))
 
-    # FORECASTING DATA COLUMNS: ['dep_delay', 'arr_delay']
+
+
+# FORECASTING DATA COLUMNS: ['dep_delay', 'arr_delay']
 # columns for self-join using forecasting columns
 columns_list = [
     'mean_dep_delay_carrier_origin_date',
@@ -189,7 +169,7 @@ groupby_tm1_year_week = groupby_columns_1 + ['fl_date_year','fl_date_week_number
 # Mean delay for the same MONTH 1 year ago; 
 groupby_tm1_year_month = groupby_columns_1 + ['fl_date_year_month']
 
-        # ADD FORECASTING COLUMNS WITH SELF-JOIN
+    # ADD FORECASTING COLUMNS WITH SELF-JOIN
 flights = flights.merge( 
                 flights.filter(items=columns_list + groupby_tm1_week_date).groupby(groupby_tm1_week_date).mean(), # Mean delay for the 7 days ago
                 how='left',
@@ -226,9 +206,33 @@ flights = flights.merge(
 )
 flights.columns
 
-    # CONVERT crs_dep_time TO DATETIME OBJECT
-column = 'crs_dep_time'
-flights = time_columns(flights,column,format='%H%M',dropna=True)
+
+
+# HANDLING MISSING VALUES
+    # FUEL TABLE
+    # Fill missing total_gallons values with sum of tdom_gallons and tint_gallons
+fuel.fillna(fuel['tdomt_gallons'] + fuel['tint_gallons'], inplace=True)
+print((fuel.filter(regex='gallons') == 0).sum(axis=0)) # Check
+fuel.head()
+    # Drop rows with total_gallons = 0 because the data is incorrect
+print('Number of rows: ',len(fuel))
+fuel_rows_to_drop = fuel['total_gallons'] == 0
+fuel.drop(fuel[fuel_rows_to_drop].index,inplace=True)
+print('Number of rows: ',len(fuel))
+
+# FLIGHTS TABLE TRAINING DATA: Fill mean flight historical/forecasting delay data. 
+dict = {
+    'mean_dep_delay_carrier_origin_date_t-1_week': 'mean_dep_delay_carrier_origin_week', 
+    'mean_arr_delay_carrier_origin_date_t-1_week': 'mean_arr_delay_carrier_origin_week',
+    'mean_dep_delay_carrier_origin_date_t-1_week_week_number': 'mean_dep_delay_carrier_origin_week',
+    'mean_arr_delay_carrier_origin_date_t-1_week_week_number': 'mean_arr_delay_carrier_origin_week',
+    # 'mean_dep_delay_carrier_origin_datet-1_year_week': 'mean_dep_delay_carrier_origin_week', # DON'T USE THIS FOR NOW
+    # 'mean_arr_delay_carrier_origin_datet-1_year_week': 'mean_arr_delay_carrier_origin_week', # DON'T USE THIS FOR NOW
+    # 'mean_dep_delay_carrier_origin_date_t-1_year_month': 'mean_dep_delay_carrier_origin_month', # DON'T USE THIS FOR NOW
+    # 'mean_arr_delay_carrier_origin_date_t-1_year_month': 'mean_arr_delay_carrier_origin_month' # DON'T USE THIS FOR NOW
+}
+fill_missing(flights,dict,fill_w_mean=False) # Call the function
+explore(flights.filter(regex='mean')) # Recheck missing values
 
 # REMOVE FEATURES WITH NULL VALUES ABOVE THRESHOLD
 threshold = 100
