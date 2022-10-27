@@ -1,3 +1,25 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pickle
+import xgboost
+from sklearn.ensemble import RandomForestRegressor
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import RandomizedSearchCV
+
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import r2_score
+
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.preprocessing import StandardScaler
+
+
+
 # Define a class
 class supervised:
     """
