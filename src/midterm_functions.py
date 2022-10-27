@@ -288,57 +288,6 @@ def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
     return df
 
 # function to convert time to datetime objects
-def date_columns(df,time_column,format='%H%M'):
-    """ 
-    Take the time in a dateframes to create new columns:
-        _sin
-        _cos
-
-    Parmaters:
-    - df: Dataframe.
-    - time_column (string or list of strings): Name of the column containing the time.
-    - Format: Original time format in the dateframe. Default is in flight format: '%H%M'
-    
-    Make sure to do the following import: 
-    from datetime import datetime
-    """
-    if type(time_column) == str:
-        time_column = [time_column]
-    for column in time_column:
-        df[str(column+'_time')] = pd.to_datetime(df[column],format=format)
-   
-    return df
-
-time_column = ['crs_dep_time','crs_arr_time']
-date_columns(flights,time_column,format='%H%M').filter(regex='time')
-
-def date_columns(df,column,format='%H%M',dropna=False, fillna=1):
-    """ 
-    Take the time in a dateframe to create new column with date time object.
-    Any null values will be replaced with 1. 
-
-    ** Note 2022-10-26 8:54**: For flights data, only works on 'crs_arr_time' column.
-    Raises error for 'dep_time', 'crs_arr_time', 'arr_time' columns.
-
-    Parmaters:
-    - df: Dataframe.
-    - column (string): Name of the column containing the time.
-    - Format: Original time format in the dateframe. Default is in flight format: '%H%M'
-    - dropna (bool): If true, drop rows where the column value is null.
-    - fillna (int): If true, fill missing values with the given number.
-    
-    Make sure to do the following import: 
-    from datetime import datetime
-    """
-    if dropna == True:
-        df.dropna(subset=column, inplace=True)
-    else:
-        df[column].fillna(value=fill_na, inplace=True)
-    df[column].fillna(value=1, inplace=True)
-    df[str(column+'_dt')] = df[column].astype(int).astype(str).apply(lambda x: datetime.strptime(x.zfill(3), "%H%M"))
-
-    return df
-
 def aggregate(data,columns,groupby,agg='mean'):
     """
     Get the average value.
@@ -393,4 +342,25 @@ def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
     df[str(date_column+'_t-1_year_month')] = (date - pd.Timedelta(days=365)).dt.to_period('M') # Same month 1 year ago
     df[str(date_column+'_t-1_year_day')] = date - pd.Timedelta(days=365) # 365 days before
     
+    return df
+
+    def fill_missing(df, dict, inplace=True, fill_w_mean=False):
+    """
+    Fill  missing values. First step is to fill with the data from the mapped column. 
+    If fill_w_mean is True (default False), second step will fill with the remaining 
+    missing values with mean for the entire column.
+
+    Parameters:
+    - df: dataframe to fill using `.fillna()` method.
+    - dict: Dictionary with column name to fill as the key and name of column with the data to 
+    fill missing values with.
+    - Inplace: bool, default True.
+        If True, fill in-place. Note: this will modify any other views on this object (e.g., a no-copy slice for a column in a DataFrame).
+    - fill_w_mean (bool): Default is False. If true, second step will fill with the remaining missing values with mean for the entire column.
+    
+    """
+    for column_to_fill, column_filler in dict.items():
+        df[column_to_fill].fillna(df[column_filler], inplace=True)
+        if fill_w_mean==True:
+            df[column_to_fill].fillna(df[column].agg('mean'), inplace=True)
     return df

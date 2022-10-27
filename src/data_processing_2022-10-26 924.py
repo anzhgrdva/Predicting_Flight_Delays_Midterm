@@ -141,6 +141,19 @@ fuel_rows_to_drop = fuel['total_gallons'] == 0
 fuel.drop(fuel[fuel_rows_to_drop].index,inplace=True)
 print('Number of rows: ',len(fuel))
 
+# FLIGHTS TABLE TRAINING DATA: Fill mean flight historical/forecasting delay data. 
+dict = {
+    'mean_dep_delay_carrier_origin_date_t-1_week': 'mean_dep_delay_carrier_origin_week', 
+    'mean_arr_delay_carrier_origin_date_t-1_week': 'mean_arr_delay_carrier_origin_week',
+    'mean_dep_delay_carrier_origin_date_t-1_week_week_number': 'mean_dep_delay_carrier_origin_week',
+    'mean_arr_delay_carrier_origin_date_t-1_week_week_number': 'mean_arr_delay_carrier_origin_week',
+    # 'mean_dep_delay_carrier_origin_datet-1_year_week': 'mean_dep_delay_carrier_origin_week', # DON'T USE THIS FOR NOW
+    # 'mean_arr_delay_carrier_origin_datet-1_year_week': 'mean_arr_delay_carrier_origin_week', # DON'T USE THIS FOR NOW
+    # 'mean_dep_delay_carrier_origin_date_t-1_year_month': 'mean_dep_delay_carrier_origin_month', # DON'T USE THIS FOR NOW
+    # 'mean_arr_delay_carrier_origin_date_t-1_year_month': 'mean_arr_delay_carrier_origin_month' # DON'T USE THIS FOR NOW
+}
+fill_missing(flights,dict,fill_w_mean=False) # Call the function
+explore(flights.filter(regex='mean')) # Recheck missing values
 
 # FLIGHTS: FEATURE SELECTION AND ENGINEERING
 from datetime import timedelta
@@ -215,7 +228,7 @@ flights.columns
 
     # CONVERT crs_dep_time TO DATETIME OBJECT
 column = 'crs_dep_time'
-flights = date_columns(flights,column,format='%H%M',dropna=True)
+flights = time_columns(flights,column,format='%H%M',dropna=True)
 
 # REMOVE FEATURES WITH NULL VALUES ABOVE THRESHOLD
 threshold = 100
