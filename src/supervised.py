@@ -12,7 +12,9 @@ from sklearn.linear_model import LogisticRegression
 
 from sklearn.preprocessing import StandardScaler
 
-
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import r2_score
 
 # Define a class
 class supervised:
@@ -66,26 +68,24 @@ class supervised:
         y_pred_train = best_model.predict(self.X_train)
 
         # Metrics for test data
-        recall = recall_score(self.y_test, y_pred)
-        precision = precision_score(self.y_test, y_pred)
-        f1score = f1_score(self.y_test, y_pred)
-        auc = roc_auc_score(self.y_test, y_pred)
+
+        rmse = mean_squared_error(self.y_test, y_pred, squared=False)
+        mean_abs_error = mean_absolute_error(self.y_test, y_pred)
+        r2 = r2_score(self.y_test, y_pred)
 
         # Metrics for training data
-        recall_train = recall_score(self.y_train, y_pred_train)
-        precision_train = precision_score(self.y_train, y_pred_train)
-        f1score_train = f1_score(self.y_train, y_pred_train)
-        auc_train = roc_auc_score(self.y_train, y_pred_train)
+
+        rmse_train = mean_squared_error(self.y_train, y_pred_train)
+        mean_abs_error_train = mean_absolute_error(self.y_train, y_pred_train)
+        r2_train = r2_score(self.y_train, y_pred_train)
 
         print(f'\n{self.model_name} evaluation metrics: \n\tTest data\tTraining data\t\tDifference')
-        print(f'Recall: \t{100*recall:.2f}%\t\t{100*recall_train:.2f}%\t\t{100*(recall-recall_train):.2f}%')
-        print(f'Precision: \t{100*precision:.2f}%\t\t{100*precision_train:.2f}%\t\t{100*(precision-precision_train):.2f}%')
-        print(f'F1: \t\t{100*f1score:.2f}%\t\t{100*f1score_train:.2f}%\t\t{100*(f1score-f1score_train):.2f}%')
-        print(f'AUC: \t\t{100*auc:.2f}%\t\t{100*auc_train:.2f}%\t\t{100*(auc-auc_train):.2f}%')
+        print(f'RMSE: \t\t{rmse:.2f}\t\t{rmse_train:.2f}\t\t{(rmse - rmse_train):.2f}')
+        print(f'MAE: \t\t{mean_abs_error:.2f}\t\t{mean_abs_error_train:.2f}\t\t{(mean_abs_error - mean_abs_error_train):.2f}')
+        print(f'R^2: \t\t{r2:.2f}\t\t{r2:.2f}\t\t{(r2 - r2_train):.2f}')
         
         print(f'Best model parameters from randomized search: {search.best_params_}')
-        ConfusionMatrixDisplay.from_estimator(best_model, self.X_test, self.y_test)
-        RocCurveDisplay.from_estimator(best_model, self.X_test, self.y_test)
+
         return best_model
 
 # Example on how to call it for  Logistical regression
