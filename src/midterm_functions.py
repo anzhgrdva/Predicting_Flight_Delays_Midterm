@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from sklearn.preprocessing import StandardScaler
+
 def load_csv(filepath,filename,column1_as_index=False):
     """
     Load a csv file as a dataframe using specified file path copied from windows file explorer.
@@ -344,7 +346,7 @@ def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
     
     return df
 
-    def fill_missing(df, dict, inplace=True, fill_w_mean=False):
+def fill_missing(df, dict, inplace=True, fill_w_mean=False):
     """
     Fill  missing values. First step is to fill with the data from the mapped column. 
     If fill_w_mean is True (default False), second step will fill with the remaining 
@@ -365,4 +367,23 @@ def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
             df[column_to_fill].fillna(df[column].agg('mean'), inplace=True)
     return df
 
-    
+def scale_data(df, numeric_cols, cat_cols):
+    """
+    - Perform standardization (StandardScaler) on the numeric_cols of the dataframe. 
+    - combines both numeric and categorical back to the entire feature dataframe.
+
+    Params:
+    - df: Dataframe object with both feature and target data. 
+    - numeric_cols: Name of the numeric columns to be scaled.
+    - cat_cols: Name of the categorical columns (dummy variables) NOT to be scaled.
+
+    Returns: Dataframe with numeric data scaled and categorical data as-is.
+
+    """
+    # Create the scaler based on the training dataset
+    scaler = StandardScaler()
+    scaler.fit(df[numeric_cols])
+    X_numeric_scaled = scaler.transform(df[numeric_cols])
+    X_categorical = df[cat_cols].to_numpy()
+    X = pd.DataFrame(np.hstack((X_categorical, X_numeric_scaled)), columns=cat_cols + numeric_cols)
+    return X
