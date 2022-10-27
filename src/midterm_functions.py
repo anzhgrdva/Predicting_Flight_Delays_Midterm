@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from datetime import datetime
 from sklearn.preprocessing import StandardScaler
 
 def load_csv(filepath,filename,column1_as_index=False):
@@ -45,36 +46,6 @@ def save_csv(df,filename,path=None,append_version=False):
         filename+=datetime.now().strftime('%Y-%m-%d_%H%M')
     df.to_csv(path+filename+'.csv')
     print('File saved: ',path+filename)
-
-# convert dates from string to datetime objects
-def date_columns(df,date_column='fl_date',format='%Y-%m-%d'):
-    """ 
-    Take the dates in a dateframes to create new columns:
-        _date_standard: Datetime data 
-        _year
-        _month
-    Parmaters:
-    - df: Dataframe.
-    - date_column: Name of the column containing the date strings.
-    - Format: Original date format in the dateframe. Default: '%d.%m.%Y'
-    
-    Make sure to do the following import: 
-    from datetime import datetime
-    """
-
-    date_column=str(date_column)
-    
-    # df[str(date_column+'_year')] = pd.to_datetime(df[date_column],
-    #     format='%d.%m.%Y')
-    date = pd.to_datetime(df[date_column],
-        format=format)
-    # df.get(str(date_column+'_standard'),date)
-    # df.get(str(date_column+'_year'),date.dt.year)
-    # df.get(str(date_column+'_month'),date.dt.month)
-    df[str(date_column+'_standard')] = date
-    df[str(date_column+'_year')] = date.dt.year
-    df[str(date_column+'_month')] = date.dt.month
-    return df
 
 def compare_id(df1, df1_column, df2, df2_column,print_common=False,print_difference=True):
     """
@@ -250,46 +221,42 @@ def drop_features(df,threshold=100, show_update=True):
     if show_update == True:
         return explore(df,id=0,print_n_unique=False, printValues=False)
 
-# create function to convert dates from string to datetime objects
-def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
+# function to convert time to datetime objects. 
+# 2022-10-26 8:54: For flights data, only works on 'crs_arr_time' column.capitalize
+    # Raises error for 'dep_time', 'crs_arr_time', 'arr_time' columns.
+
+def time_columns(df,column,format='%H%M',dropna=False, fillna=1):
     """ 
-    Take the dates in a dateframes to create new columns:
-        _date_standard: Datetime data 
-        _year
-        _month
-        _1_week_ago
-        _1_year_ago
+    Take the time in a dateframe to create new columns with:
+    - date time object
+    - Hour in 24 hour format as an integer.
+    
+    Any null values will be replaced with 1. 
+
+    ** Note 2022-10-26 8:54**: For flights data, only works on 'crs_arr_time' column.
+    Raises error for 'dep_time', 'crs_arr_time', 'arr_time' columns.
 
     Parmaters:
     - df: Dataframe.
-    - date_column: Name of the column containing the date strings.
-    - Format: Original date format in the dateframe. Default: '%d.%m.%Y'
+    - column (string): Name of the column containing the time.
+    - Format: Original time format in the dateframe. Default is in flight format: '%H%M'
+    - dropna (bool): If true, drop rows where the column value is null.
+    - fillna (int): If true, fill missing values with the given number.
     
     Make sure to do the following import: 
     from datetime import datetime
     """
-    import pandas as pd
-    date_column=str(date_column)
-    
-    date = pd.to_datetime(df[date_column],
-        format=format)
-    df[str(date_column+'_dt')] = date # date
-    df[str(date_column+'_year')] = date.dt.to_period('Y') # year
-    df[str(date_column+'_year_month')] = date.dt.to_period('M') # month
-    df[str(date_column+'_Monday_of_week')] = date.dt.to_period('W').dt.start_time # Monday of the week
-    df[str(date_column+'_week_number')] = date.dt.isocalendar().week # week of the year
-
-
-    df[str(date_column+'_t-1_week_week_number')] = (date - pd.Timedelta(days=7)).dt.isocalendar().week # previous week's week number of the year 
-    df[str(date_column+'_t-1_week_date')] = date - pd.Timedelta(days=7) # 7 days before
-
-    df[str(date_column+'_t-1_year_year')] = (date - pd.Timedelta(days=365)).dt.to_period('Y') # Previous year
-    df[str(date_column+'_t-1_year_month')] = (date - pd.Timedelta(days=365)).dt.to_period('M') # Same month 1 year ago
-    df[str(date_column+'_t-1_year_day')] = date - pd.Timedelta(days=365) # 365 days before
-    
+    if dropna == True:
+        df.dropna(subset=column, inplace=True)
+    else:
+        df[column].fillna(value=fill_na, inplace=True)
+    df[column].fillna(value=1, inplace=True)
+    time = df[column].astype(int).astype(str).apply(lambda x: datetime.strptime(x.zfill(3), "%H%M"))
+    df[str(column+'_dt')] = time
+    df[str(column+'_hour')] = time.dt.hour
     return df
 
-# function to convert time to datetime objects
+# function to get aggregate data by group.
 def aggregate(data,columns,groupby,agg='mean'):
     """
     Get the average value.
