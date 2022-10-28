@@ -307,8 +307,8 @@ def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
     df[str(date_column+'_t-1_week_week_number')] = (date - pd.Timedelta(days=7)).dt.isocalendar().week # previous week's week number of the year 
     df[str(date_column+'_t-1_week_date')] = date - pd.Timedelta(days=7) # 7 days before
 
-    df[str(date_column+'_t-1_year_year')] = (date - pd.Timedelta(days=365)).dt.to_period('Y') # Previous year
-    df[str(date_column+'_t-1_year_month')] = (date - pd.Timedelta(days=365)).dt.to_period('M') # Same month 1 year ago
+    df[str(date_column+'_t-1_year_year')] = (date - pd.Timedelta(days=365)).dt.year # Previous year
+    # df[str(date_column+'_t-1_year_month')] = (date - pd.Timedelta(days=365)).dt.month # Same month 1 year ago # updated 2022-10-27 11:51
     df[str(date_column+'_t-1_year_day')] = date - pd.Timedelta(days=365) # 365 days before
     
     return df
