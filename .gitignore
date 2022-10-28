@@ -18,8 +18,11 @@ src/flights_2022-10-27_1948.csv
 src/flights_before_silvias_part.csv
 src/flights_data_2022-10-27_2155.csv
 src/flights_passengers_2022-10-27_2035.csv
+src/historical_features_for_test_data.csv
+
 
 models/*.sav
 __pycache__/
 .ipynb_checkpoints/
 src/.DS_Store
+
