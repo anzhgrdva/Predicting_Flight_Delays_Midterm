@@ -194,12 +194,12 @@ def plot_hist(df, columns=None):
         sns.histplot(data=df,x=feature,ax=ax[i//2, i % 2])
     plt.tight_layout()
 
-def drop_features(df,threshold=100, show_update=True):
+def drop_features(df,threshold=.99):
     """
     Drop columns in a dataframe with null values above the specified threshold.
     Parameters:
     - df: Dataframe.
-    - threshold (float): Float between 0 and 100. 
+    - threshold (float): Float between 0 and 1. 
         Threshold of % null values over which columns will be dropped.
     - show_update: If true, show missing values for the updated dataframe
         (calls the custom function explore)
@@ -218,8 +218,7 @@ def drop_features(df,threshold=100, show_update=True):
     df.drop(to_drop, axis=1, inplace=True)
     print(f'Threshold of percentage values for dropping columns: {threshold}')
     print(f'Columns dropped: {to_drop}')
-    if show_update == True:
-        return explore(df,id=0,print_n_unique=False, printValues=False)
+    return df
 
 # function to convert time to datetime objects. 
 # 2022-10-26 8:54: For flights data, only works on 'crs_arr_time' column.capitalize
