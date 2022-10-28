@@ -60,7 +60,7 @@ class supervised:
             self.X_train = self.X_train_pre
             self.X_test = self.X_test_pre
             print('**Data not scaled**')
-        search = RandomizedSearchCV(self.estimator, param_distributions=self.params, random_state=0,n_jobs=-2,scoring='recall')
+        search = RandomizedSearchCV(self.estimator, param_distributions=self.params, n_iter=4, random_state=0,n_jobs=-2,scoring='recall')
         search.fit(self.X_train, self.y_train)
         best_model = search.best_estimator_
 
