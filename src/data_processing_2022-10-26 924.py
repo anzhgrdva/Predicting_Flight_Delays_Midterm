@@ -319,6 +319,13 @@ columns_for_ID = ['op_carrier_fl_num', 'origin_airport_id', 'dest_airport_id',
        'actual_elapsed_time', 
        'arr_delay', 'dep_delay',
        ]
+
+    # Drop columns that shouldn't be included in PCA
+ID_columns = flights[columns_for_ID].copy() # Save these columns for identification later
+ID_columns.pd.to_csv('pca_ID_columns.csv')
+
+flights.drop(labels=columns_for_ID, inplace=True, axis=1)
+
        # Run the PCA
 pca = run_pca(flights, n_components=0.95, cluster_col=None)
 # Save the pca dataframe. This dataframe is the data that will be entered into the model.
