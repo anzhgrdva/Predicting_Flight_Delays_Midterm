@@ -165,9 +165,9 @@ groupby_tm1_week_date = groupby_columns_1 + ['fl_date_t-1_week_date']
 # Mean delay for the 1 week before
 groupby_tm1_week_week_number = groupby_columns_1 + ['fl_date_t-1_week_week_number']
 # Mean delay for the same week 1 year ago
-groupby_tm1_year_week = groupby_columns_1 + ['fl_date_year','fl_date_week_number']
+groupby_tm1_year_week = groupby_columns_1 + ['year','fl_date_week_number'] # SH 2022-10-27 19:11 updated
 # Mean delay for the same MONTH 1 year ago; 
-groupby_tm1_year_month = groupby_columns_1 + ['fl_date_year_month']
+groupby_tm1_year_month = groupby_columns_1 + ['month'] # SH 2022-10-27 19:11 updated
 
     # ADD FORECASTING COLUMNS WITH SELF-JOIN
 flights = flights.merge( 
