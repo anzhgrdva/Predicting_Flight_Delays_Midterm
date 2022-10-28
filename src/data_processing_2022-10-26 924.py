@@ -232,8 +232,8 @@ passengers.drop(columns=col_for_averaging, inplace=True)
     # Prepare for the merge!
 left_join_columns = ['mkt_carrier','origin_airport_id', 'dest_airport_id', 
     'fl_date_t-1_year_year', 'month']
-right_join_columns = ['unique_carrier','origin_airport_id', 'dest_airport_id', 
-    'year', 'month']
+right_join_columns = ['carrier','origin_airport_id', 'dest_airport_id', 
+    'year', 'month'] # SH 2022-10-27 20:42 changed 'unique_carrier' to 'carrier'
 
     # Join flights and passengers table
 flights = flights.merge(
@@ -243,7 +243,8 @@ flights = flights.merge(
     # check that the new columns have values and not all NaNs.
 flights.values_sort('mean_seats_per_departure')
 
-
+    # Drop duplicates after the merge
+flights.drop_duplicates(subset=['mkt_unique_carrier','fl_date','mkt_carrier_fl_num'], inplace=True)
 
 # # HANDLING MISSING VALUES
 #     # FUEL TABLE
