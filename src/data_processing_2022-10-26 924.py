@@ -278,4 +278,37 @@ threshold = 0.5
 drop_features(flights,threshold=threshold,show_update=False)
 
     # Drop rows with any missing values
-df = df_with_passangers.dropna(how='any') 
+
+df = df_with_passangers.dropna(subset=['departures_performed', 'distance', 'unique_carrier', 'airline_id',
+       'origin_airport_id', 'dest_airport_id', 'year', 'month',
+       'mean_payload_per_departure', 'mean_seats_per_departure',
+       'mean_passengers_per_departure', 'mean_freight_per_departure',
+       'mean_mail_per_departure', 'mean_empty_seats_per_departure'])
+
+# Define a function to fill missing values with the mean value in that column
+def fill_with_mean(df,columns,agg='mean',inplace=True):
+    """
+    Get the average value in the column.
+
+    Parmaters:
+    - Data: `Dataframe groupby().apply()` argument.
+    - Columns: Column names on which to perform calculations. Use a list for multiple.
+    - agg (string, optional): Aggregate function to apply. Default is mean.
+    """
+
+    for column in columns:
+        df.fillna(df.loc[:,column].agg(agg), inplace=True)
+
+    return df
+
+groupby_columns = ['mkt_carrier']
+columns_to_fill = # columns to fill
+flights = flights.groupby(groupby_columns,group_keys=False).apply( 
+        lambda x: fill_with_mean(x,columns_to_fill))
+
+
+
+# PCA
+    # Data should be scaled before this step
+pca = run_pca(flights, n_components=0.95, cluster_col=None)
+# Save the pca dataframe

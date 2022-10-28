@@ -353,3 +353,100 @@ def scale_data(df, numeric_cols, cat_cols):
     X_categorical = df[cat_cols].to_numpy()
     X = pd.DataFrame(np.hstack((X_categorical, X_numeric_scaled)), columns=cat_cols + numeric_cols)
     return X
+
+# Define a function to fill missing values with the mean value in that column
+def fill_with_mean(df,columns,agg='mean',inplace=True):
+    """
+    Get the average value in the column.
+
+    Parmaters:
+    - Data: `Dataframe groupby().apply()` argument.
+    - Columns: Column names on which to perform calculations. Use a list for multiple.
+    - agg (string, optional): Aggregate function to apply. Default is mean.
+    """
+
+    for column in columns:
+        df.fillna(df.loc[:,column].agg(agg), inplace=True)
+
+    return df
+
+# Perform PCA: SH 2022-10-27 
+def run_pca(df, n_components=2, column_range=None, cluster_col=None):
+    """
+    Run a PCA, then plot data along the first 2 PC dimensions and the projections.
+
+    Parameters: 
+    - col_range: Start and end index for column numbers to include in the model.
+        Default is None to include all columns.
+    - cluster_col (tuple): Column(s) with cluster ids.
+
+    Return PCA result as a dataframe.
+
+    """
+    from sklearn.decomposition import PCA
+    import seaborn as sns
+
+    pca = PCA(n_components=n_components)
+    if column_range == None:
+        columns = df.columns
+    else:
+        columns = df.columns[column_range[0]:column_range[1]]
+    data_scaled = df[columns]
+    
+    # Apply PCA
+    pca.fit(data_scaled)
+    data_pca = pca.transform(data_scaled)
+    data_pca = pd.DataFrame(data_pca)
+
+    # Get the projections ('loadings') of each dimension along each principal component:
+    loadings = pd.DataFrame(pca.components_)
+
+    # rename the columns from the PCA dataframe result
+    loadings.columns = columns
+
+    # plot PCA showing both KMeans clusters and AC clusters
+    # To plot the raw data along with the loading plot, scale the raw data down:
+    xscale = 1/(data_pca[0].max()-data_pca[0].min())
+    yscale = 1/(data_pca[1].max()-data_pca[1].min())
+    # Make the plots
+    fig, ax = plt.subplots(ncols=2,nrows=1,figsize=(12,5))
+
+    # Plot showing KMeans clusters
+    if cluster_col:
+        clustering_col1 = df.columns[cluster_col[0]]
+
+        sns.scatterplot(
+            x=data_pca[0]*xscale,y=data_pca[1]*yscale,
+            hue=df[clustering_col1].values,
+            ax=ax[0]
+            )
+        for feature, vector in loadings.items():
+            # Plot each feature using the two principal components as axes
+            ax[0].arrow(0,0,vector[0],vector[1]) 
+            # Label each arrow at the tip of the line
+            if (vector[0] > loadings.loc[0,:].mean()) | (vector[1] > loadings.loc[1,:].mean()):
+                ax[0].text(vector[0],vector[1],feature)
+                print('Feature vector component above average: ',feature)
+        ax[0].set_xlabel('PC1')
+        ax[0].set_ylabel('PC2')
+        ax[0].set_title(clustering_col1)
+        
+        # Plot showing AC clusters
+        if len(cluster_col) == 2:
+            clustering_col2 = df.columns[cluster_col[-1]]
+            sns.scatterplot(
+                x=data_pca[0]*xscale,y=data_pca[1]*yscale,
+                hue=df[clustering_col2].values,
+                ax=ax[1]
+                )
+            for feature, vector in loadings.items():
+                # Plot each feature using the two principal components as axes
+                ax[1].arrow(0,0,vector[0],vector[1]) 
+                # Label each arrow at the tip of the line
+                if (vector[0] > loadings.loc[0,:].mean()) | (vector[1] > loadings.loc[1,:].mean()):
+                    ax[1].text(vector[0],vector[1],feature)
+            ax[1].set_xlabel('PC1')
+            ax[1].set_ylabel('PC2')
+            ax[1].set_title(clustering_col2)
+
+    return data_pca
