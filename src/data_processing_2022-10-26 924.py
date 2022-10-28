@@ -310,5 +310,20 @@ flights = flights.groupby(groupby_columns,group_keys=False).apply(
 
 # PCA
     # Data should be scaled before this step
+    # Remove columns that cannot be used for prediction, as well as identification columns
+    # Double check what is listed. 
+columns_for_ID = ['op_carrier_fl_num', 'origin_airport_id', 'dest_airport_id',
+       'month', 'fl_date_year',
+       'fl_date_week_number', 
+    'crs_dep_time', 'crs_arr_time', 
+       'actual_elapsed_time', 
+       'arr_delay', 'dep_delay',
+       ]
+       # Run the PCA
 pca = run_pca(flights, n_components=0.95, cluster_col=None)
-# Save the pca dataframe
+# Save the pca dataframe. This dataframe is the data that will be entered into the model.
+
+
+# Extract Jan and Dec 2019 data 
+filter = (df_with_passangers['year'] == 2019) & ((df_with_passangers['month'] == 1) | (df_with_passangers['month'] == 12))
+df_with_passangers[filter].to_csv('historical_features_for_test_data.csv')
