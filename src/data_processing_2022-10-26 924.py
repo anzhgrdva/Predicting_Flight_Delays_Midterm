@@ -208,17 +208,54 @@ flights.columns
 
 
 
-# HANDLING MISSING VALUES
-    # FUEL TABLE
-    # Fill missing total_gallons values with sum of tdom_gallons and tint_gallons
-fuel.fillna(fuel['tdomt_gallons'] + fuel['tint_gallons'], inplace=True)
-print((fuel.filter(regex='gallons') == 0).sum(axis=0)) # Check
-fuel.head()
-    # Drop rows with total_gallons = 0 because the data is incorrect
-print('Number of rows: ',len(fuel))
-fuel_rows_to_drop = fuel['total_gallons'] == 0
-fuel.drop(fuel[fuel_rows_to_drop].index,inplace=True)
-print('Number of rows: ',len(fuel))
+# PASSENGERS TABLE
+# Load the CSV file with the variable name `passengers` for convenience.
+
+    # Calculate average per departure
+col_for_averaging = [
+    'payload',
+    'seats',
+    'passengers',
+    'freight',
+    'mail',
+]
+    # Calculate average per departure
+for column in col_for_averaging:
+    passengers[str('mean_'+column+'_per_departure')] = passengers[column] / passengers['departures_performed']
+
+    # calculate mean empty seats
+passengers['mean_empty_seats_per_departure'] = passengers['mean_seats_per_departure'] - passengers['mean_passengers_per_departure']
+
+    # Drop columns whose data were put into the new columns as 'mean_.*'
+passengers.drop(columns=col_for_averaging, inplace=True)
+
+    # Prepare for the merge!
+left_join_columns = ['mkt_carrier','origin_airport_id', 'dest_airport_id', 
+    'fl_date_t-1_year_year', 'month']
+right_join_columns = ['unique_carrier','origin_airport_id', 'dest_airport_id', 
+    'year', 'month']
+
+    # Join flights and passengers table
+flights = flights.merge(
+    passengers,how='left',left_on=left_join_columns, 
+    right_on=right_join_columns)
+
+    # check that the new columns have values and not all NaNs.
+flights.values_sort('mean_seats_per_departure')
+
+
+
+# # HANDLING MISSING VALUES
+#     # FUEL TABLE
+#     # Fill missing total_gallons values with sum of tdom_gallons and tint_gallons
+# fuel.fillna(fuel['tdomt_gallons'] + fuel['tint_gallons'], inplace=True)
+# print((fuel.filter(regex='gallons') == 0).sum(axis=0)) # Check
+# fuel.head()
+#     # Drop rows with total_gallons = 0 because the data is incorrect
+# print('Number of rows: ',len(fuel))
+# fuel_rows_to_drop = fuel['total_gallons'] == 0
+# fuel.drop(fuel[fuel_rows_to_drop].index,inplace=True)
+# print('Number of rows: ',len(fuel))
 
 # FLIGHTS TABLE TRAINING DATA: Fill mean flight historical/forecasting delay data. 
 dict = {
