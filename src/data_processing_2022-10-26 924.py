@@ -272,8 +272,10 @@ dict = {
 fill_missing(flights,dict,fill_w_mean=False) # Call the function
 explore(flights.filter(regex='mean')) # Recheck missing values
 
-# REMOVE FEATURES WITH NULL VALUES ABOVE THRESHOLD
-threshold = 100
+# REMOVE NULLS
+    # REMOVE FEATURES WITH NULL VALUES ABOVE THRESHOLD
+threshold = 0.5 
 drop_features(flights,threshold=threshold,show_update=False)
 
-# REMOVE NULLS
+    # Drop rows with any missing values
+df = df_with_passangers.dropna(how='any') 
