@@ -11,6 +11,10 @@ data/pca_2022-10-27_1056.csv
 data/flights_all_2022-10-27_1616.csv
 data/passengers_2022-10-27_1727.csv
 
+data/data_for_modeling_final_2022-10-28_1227.csv
+data/test_prepared_2022-10-28_1345.csv
+
+
 src/data_for_modeling_2022-10-28-1208.csv
 src/data_for_modeling_final_2022-10-28_1227.csv
 src/df_with_passangers_2022-10-27_1005.csv
@@ -22,6 +26,8 @@ src/historical_features_for_test_data.csv
 
 
 models/*.sav
+models/*.pkl
+
 __pycache__/
 .ipynb_checkpoints/
 src/.DS_Store
