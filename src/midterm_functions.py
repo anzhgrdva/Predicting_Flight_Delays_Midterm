@@ -5,6 +5,7 @@ import seaborn as sns
 
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
+import psycopg2
 
 def load_csv(filepath,filename,column1_as_index=False):
     """
@@ -46,6 +47,27 @@ def save_csv(df,filename,path=None,append_version=True):
         filename+=datetime.now().strftime('%Y-%m-%d_%H%M')
     df.to_csv(path+filename+'.csv')
     print('File saved: ',path+filename)
+
+## SQL
+def execute_query(query_string, return_pandas=True, limit=50):
+    """
+    Create a function to execute queries.
+    limit  (int): Maximum number of rows to return. Default is 50.
+    """
+    con = psycopg2.connect(database='mid_term_project', user='lhl_student', password='lhl_student',
+        host='lhl-data-bootcamp.crzjul5qln0e.ca-central-1.rds.amazonaws.com', port='5432')
+    cur = con.cursor()
+
+    if limit:
+        query_string+=' LIMIT '+str(limit)
+        print(query_string)
+    if return_pandas:
+        response = pd.read_sql_query(query_string, con)
+    else:
+        cur.execute(query_string)
+        response = cur.fetchall()
+    con.close()
+    return response
 
 def compare_id(df1, df1_column, df2, df2_column,print_common=False,print_difference=True):
     """
@@ -224,6 +246,22 @@ def drop_features(df,threshold=.99):
 # 2022-10-26 8:54: For flights data, only works on 'crs_arr_time' column.capitalize
     # Raises error for 'dep_time', 'crs_arr_time', 'arr_time' columns.
 
+# Define a function to fill missing values with the mean value in that column
+def fill_with_mean(df,columns,agg='mean',inplace=True):
+    """
+    Get the average value in the column.
+
+    Parmaters:
+    - Data: `Dataframe groupby().apply()` argument.
+    - Columns: Column names on which to perform calculations. Use a list for multiple.
+    - agg (string, optional): Aggregate function to apply. Default is mean.
+    """
+
+    for column in columns:
+        df.fillna(df.loc[:,column].agg(agg), inplace=True)
+
+    return df
+    
 def time_columns(df,column,format='%H%M', dropna=False, fillna=1):
     """ 
     Take the time in a dateframe to create new columns with:
