@@ -1,34 +1,14 @@
 # macos Files
 .DS_Store
-src/.DS_Store
-data/flights-2022-10-26_0906.csv
-data/flights_clean_2022-10-26_1247.csv
-data/flights_cleaned_no_outliers_2022-10-26_1451.csv
-data/flights_modeling_2022-10-26_2322.csv
-data/flights_silvia_2022-10-26_2220.csv
-data/flights_modeling_2022-10-27_1315.csv
-data/pca_2022-10-27_1056.csv
-data/flights_all_2022-10-27_1616.csv
-data/passengers_2022-10-27_1727.csv
 
-data/data_for_modeling_final_2022-10-28_1227.csv
-data/test_prepared_2022-10-28_1345.csv
-
-
-src/data_for_modeling_2022-10-28-1208.csv
-src/data_for_modeling_final_2022-10-28_1227.csv
-src/df_with_passangers_2022-10-27_1005.csv
-src/flights_2022-10-27_1948.csv
-src/flights_before_silvias_part.csv
-src/flights_data_2022-10-27_2155.csv
-src/flights_passengers_2022-10-27_2035.csv
-src/historical_features_for_test_data.csv
-
+# data
+data/**.csv
+data/old/
+data/steps/
 
 models/*.sav
 models/*.pkl
 
 __pycache__/
 .ipynb_checkpoints/
-src/.DS_Store
 
