@@ -152,9 +152,197 @@ flights = flights.groupby(
     groupby_columns_1,group_keys=False).apply( # for a given DAY OF YEAR
         lambda x: aggregate(x,columns,'carrier_origin_date')))
 
+    # GROUP STATES INTO REGIONS #Anastasia's code (test is the flights table object name)
+regions = {
+    'WA': 'West',
+    'OR': 'West',
+    'ID': 'West',
+    'MT': 'West',
+    'WY': 'West',
+    'CA': 'West',
+    'NV': 'West',
+    'UT': 'West',
+    'AZ': 'West',
+    'CO': 'West',
+    'NM': 'West',
+    'HI': 'West',
+    'AK': 'West',
+    
+    'ND': 'Midwest',
+    'SD': 'Midwest',
+    'NE': 'Midwest',
+    'KS': 'Midwest',
+    'MN': 'Midwest',
+    'IA': 'Midwest',
+    'MO': 'Midwest',
+    'WI': 'Midwest',
+    'IL': 'Midwest',
+    'IN': 'Midwest',
+    'MI': 'Midwest',
+    'OH': 'Midwest',
+
+    'OK': 'South',
+    'TX': 'South',
+    'AR': 'South',
+    'LA': 'South',
+    'MS': 'South',
+    'AL': 'South',
+    'TN': 'South',
+    'KY': 'South',
+    'WV': 'South',
+    'DC': 'South',
+    'VA': 'South',
+    'DE': 'South',
+    'MD': 'South',
+    'NC': 'South',
+    'SC': 'South',
+    'GA': 'South',
+    'FL': 'South',
+
+    'PA': 'Northeast',
+    'NY': 'Northeast',
+    'VT': 'Northeast',
+    'ME': 'Northeast',
+    'NH': 'Northeast',
+    'MA': 'Northeast',
+    'CT': 'Northeast',
+    'RI': 'Northeast',
+    'NJ': 'Northeast'
+    }
+# Split City and State 
+test[['origin_city', 'origin_state']] = test['origin_city_name'].str.split(", ",expand=True,) 
+test[['dest_city', 'dest_state']] = test['dest_city_name'].str.split(", ",expand=True,) 
+
+    # DROP UNECESSARY COLUMNS
+test_columns_to_drop = [
+'mkt_unique_carrier', 
+'branded_code_share', 
+'op_unique_carrier', 
+'tail_num', 
+'op_carrier_fl_num', 
+'origin_city_name', 
+'dest_city_name', 
+'dup', 
+'flights', 
+'origin', 
+'dest', 
+]
+test.drop(columns=test_columns_to_drop, inplace=True)
+
+    # CONVERT crs_dep_time TO DATETIME OBJECT
+column = 'crs_dep_time'
+test = time_columns(test,column,format='%H%M',fillna=1,dropna=True)
+
+    # To flights table, add columns with the  features for date and forecasting date
+test = date_forecast_columns(test,date_column='fl_date',format='%Y-%m-%d')
+test.columns
 
 
-# FORECASTING DATA COLUMNS: ['dep_delay', 'arr_delay']
+     # TEST DATA ONLY (train refers to dataframe with training dataset)
+columns_to_add = list(set(train.columns) - set(test.columns))
+sorted(columns_to_add)
+
+    # Replace day numbers with day names
+test['day_of_week'].replace({ 
+        0: 'Monday', 
+        1: 'Tuesday', 
+        2: 'Wednesday', 
+        3: 'Thursday', 
+        4: 'Friday', 
+        5: 'Saturday', 
+        6: 'Sunday'}, inplace=True)
+      
+    # Divide the flight into short, medium, and long haul flights based on air-time
+    # SH 2022-10-28 8:55: 'air_time' not available in test data, so use crs_elapsed_time instead.
+length=[]
+
+for i in test['crs_elapsed_time']:
+    if i < (180): # less than 3 hours
+        length.append('short')
+    elif (i >= (180)) and (i <= (360)): #between 3 and 6 hours
+        length.append('medium')
+    else: length.append('long') # more than 6 hours
+test['haul_length'] = length  
+
+    # TIME
+# Converting time into 24 hours
+test['crs_arr_hrs'] = (test['crs_arr_time']/100).astype(int)
+test['crs_dep_hrs'] = (test['crs_dep_time']/100).astype(int)
+
+# Convert time into categories: crs_dep_hrs
+ctg = []
+for i in test['crs_dep_hrs']:
+    if (i>=5) and (i<12):
+        ctg.append('Morning')
+    elif (i>=12) and (i<16):
+        ctg.append('Afternoon')
+    elif (i>=16) and (i<=22):
+        ctg.append('Evening')
+    elif (i>22) or (i<5):
+        ctg.append('Night')
+
+test['dep_hrs_ctg'] = ctg
+
+# Convert time into categories: crs_arr_hrs
+ctg = []
+for i in test['crs_arr_hrs']:
+    if (i>=5) and (i<12):
+        ctg.append('Morning')
+    elif (i>=12) and (i<16):
+        ctg.append('Afternoon')
+    elif (i>=16) and (i<=22):
+        ctg.append('Evening')
+    elif (i>22) or (i<5):
+        ctg.append('Night')
+test['arr_hrs_ctg'] = ctg
+
+    # Remove columns from train data that won't be used
+train_columns_to_drop = [
+'total_add_gtime',
+ 'unique_carrier',
+ 'week_of_year',
+ 'year_y',
+ 'op_carrier_fl_num',
+ 'op_unique_carrier',
+ 'origin_city',
+ 'origin_region',
+ 'total_add_gtime',
+ 'longest_add_gtime',
+ 'distance_y',
+ 'diverted',
+  'dep_time',
+ 'departures_performed',
+ 'dest_city',
+ 'dest_region',
+  'dep_delay',
+    'day',
+    'crs_arr_hrs',
+ 'crs_dep_hrs',
+  'cancellation_code',
+ 'cancelled',
+  'cancellation_code',
+ 'cancelled',
+  'arr_delay',
+   '_merge',
+ 'actual_elapsed_time',
+ 'air_time',
+ 'Unnamed: 0',
+ 'airline_id',
+  'arr_time',
+  'branded_code_share',
+   'first_dep_time',
+]
+
+train.drop(columns=train_columns_to_drop, inplace=True)
+
+    # Add columns to test data to allow for concatenation
+columns_to_add = list(set(train.columns) - set(test.columns))
+test[columns_to_add] = np.nan
+
+
+
+
+# TRAIN DATA ONLY - FORECASTING DATA COLUMNS: ['dep_delay', 'arr_delay']
 # columns for self-join using forecasting columns
 columns_list = [
     'mean_dep_delay_carrier_origin_date',
@@ -168,6 +356,11 @@ groupby_tm1_week_week_number = groupby_columns_1 + ['fl_date_t-1_week_week_numbe
 groupby_tm1_year_week = groupby_columns_1 + ['year','fl_date_week_number'] # SH 2022-10-27 19:11 updated
 # Mean delay for the same MONTH 1 year ago; 
 groupby_tm1_year_month = groupby_columns_1 + ['month'] # SH 2022-10-27 19:11 updated
+
+test=test.replace({"origin_state": regions})
+test=test.replace({"dest_state": regions})
+
+test = test.rename(columns={'origin_state': 'origin_region', 'dest_state': 'dest_region'})
 
     # ADD FORECASTING COLUMNS WITH SELF-JOIN
 flights = flights.merge( 
@@ -206,7 +399,18 @@ flights = flights.merge(
 )
 flights.columns
 
-
+# FLIGHTS TABLE - DUMMY VARIABLES
+dummy = [
+    'origin_region',
+'dest_region',
+'dep_hrs_ctg', 'arr_hrs_ctg',
+'day_of_week',
+'haul_length',
+]
+test_2 = pd.get_dummies(test,columns=dummy)
+    # Test data: Drop columns that are not in train data set
+test_2.drop(columns='fl_date_dt', inplace=True)
+    # Save CSV
 
 # PASSENGERS TABLE
 # Load the CSV file with the variable name `passengers` for convenience.
@@ -264,10 +468,10 @@ dict = {
     'mean_arr_delay_carrier_origin_date_t-1_week': 'mean_arr_delay_carrier_origin_week',
     'mean_dep_delay_carrier_origin_date_t-1_week_week_number': 'mean_dep_delay_carrier_origin_week',
     'mean_arr_delay_carrier_origin_date_t-1_week_week_number': 'mean_arr_delay_carrier_origin_week',
-    # 'mean_dep_delay_carrier_origin_datet-1_year_week': 'mean_dep_delay_carrier_origin_week', # DON'T USE THIS FOR NOW
-    # 'mean_arr_delay_carrier_origin_datet-1_year_week': 'mean_arr_delay_carrier_origin_week', # DON'T USE THIS FOR NOW
-    # 'mean_dep_delay_carrier_origin_date_t-1_year_month': 'mean_dep_delay_carrier_origin_month', # DON'T USE THIS FOR NOW
-    # 'mean_arr_delay_carrier_origin_date_t-1_year_month': 'mean_arr_delay_carrier_origin_month' # DON'T USE THIS FOR NOW
+    'mean_dep_delay_carrier_origin_datet-1_year_week': 'mean_dep_delay_carrier_origin_week', 
+    'mean_arr_delay_carrier_origin_datet-1_year_week': 'mean_arr_delay_carrier_origin_week', 
+    'mean_dep_delay_carrier_origin_date_t-1_year_month': 'mean_dep_delay_carrier_origin_month', 
+    'mean_arr_delay_carrier_origin_date_t-1_year_month': 'mean_arr_delay_carrier_origin_month' 
 }
 fill_missing(flights,dict,fill_w_mean=False) # Call the function
 explore(flights.filter(regex='mean')) # Recheck missing values
