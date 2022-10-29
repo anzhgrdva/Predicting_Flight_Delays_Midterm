@@ -28,7 +28,7 @@ def load_csv(filepath,filename,column1_as_index=False):
         df.index.name = None
     return df
 
-def save_csv(df,filename,path=None,append_version=False):
+def save_csv(df,filename,path=None,append_version=True):
     """
     Export dataframe to CSV.
     Parameters:
@@ -224,7 +224,7 @@ def drop_features(df,threshold=.99):
 # 2022-10-26 8:54: For flights data, only works on 'crs_arr_time' column.capitalize
     # Raises error for 'dep_time', 'crs_arr_time', 'arr_time' columns.
 
-def time_columns(df,column,format='%H%M',dropna=False, fillna=1):
+def time_columns(df,column,format='%H%M', dropna=False, fillna=1):
     """ 
     Take the time in a dateframe to create new columns with:
     - date time object
@@ -297,7 +297,29 @@ def date_forecast_columns(df,date_column='fl_date',format='%Y-%m-%d'):
     date = pd.to_datetime(df[date_column],
         format=format)
     df[str(date_column+'_dt')] = date # date
-    df[str(date_column+'_year')] = date.dt.to_period('Y') # year
+
+    # SH 2022-10-28 7:37 Added
+    df['year'] = date.dt.year # SH 2022-10-28 7:37 Added
+    df['month'] = date.dt.month
+    # df['day'] = date.dt.day # not used
+    # df[str(date_column+'_year')] = date.dt.to_period('Y') # year # SH 2022-10-28 7:37 remove
+    
+    # Convert datetime column/series to day of the week
+    df['day_of_week'] = date.dt.weekday
+    # Replace day numbers with day names
+    df['day_of_week'].replace({ 
+        0: 'Monday', 
+        1: 'Tuesday', 
+        2: 'Wednesday', 
+        3: 'Thursday', 
+        4: 'Friday', 
+        5: 'Saturday', 
+        6: 'Sunday'}, inplace=True)
+    # SH 2022-10-28 7:37 end of add
+
+    # Convert datetime column/series to year
+    df['day_of_year'] = date.dt.day_of_year
+
     df[str(date_column+'_year_month')] = date.dt.to_period('M') # month
     df[str(date_column+'_Monday_of_week')] = date.dt.to_period('W').dt.start_time # Monday of the week
     df[str(date_column+'_week_number')] = date.dt.isocalendar().week # week of the year
