@@ -261,7 +261,7 @@ def fill_with_mean(df,columns,agg='mean',inplace=True):
         df.fillna(df.loc[:,column].agg(agg), inplace=True)
 
     return df
-    
+
 def time_columns(df,column,format='%H%M', dropna=False, fillna=1):
     """ 
     Take the time in a dateframe to create new columns with:
@@ -403,8 +403,9 @@ def scale_data(df, numeric_cols, cat_cols):
     - numeric_cols: Name of the numeric columns to be scaled.
     - cat_cols: Name of the categorical columns (dummy variables) NOT to be scaled.
 
-    Returns: Dataframe with numeric data scaled and categorical data as-is.
-
+    Returns: 
+    - Dataframe with numeric data scaled and categorical data as-is.
+    - Scaler for subsequent use
     """
     # Create the scaler based on the training dataset
     scaler = StandardScaler()
@@ -412,7 +413,7 @@ def scale_data(df, numeric_cols, cat_cols):
     X_numeric_scaled = scaler.transform(df[numeric_cols])
     X_categorical = df[cat_cols].to_numpy()
     X = pd.DataFrame(np.hstack((X_categorical, X_numeric_scaled)), columns=cat_cols + numeric_cols)
-    return X
+    return X, scaler
 
 # Define a function to fill missing values with the mean value in that column
 def fill_with_mean(df,columns,agg='mean',inplace=True):
