@@ -6,32 +6,23 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
 
 from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import LogisticRegression
+# from sklearn.linear_model import LogisticRegression
 
 from sklearn.preprocessing import StandardScaler
 
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import r2_score
+import seaborn as sns
 
 # Define a class
 class supervised:
     """
     * Split the data
-    * Scale the data
-    * Perform the following for both raw and scaled data:
+    * Scale the data if specified
+    * Perform the following data:
         * Random search to find best parameters
-        * Print model evalutation metrics: 
-            * recall
-            * precision
-            * F1
-            * AUC score
-        * Plot:
-            * confusion matrix
-            * ROC
+
     Params:
     * df: Dataframe with all data and target variable as last column.
     
@@ -49,7 +40,26 @@ class supervised:
         self.params = param_distributions
         self.model_name = model_name
 
-    def get_best_model(self,scaled=False):
+    def get_best_model(self,scaled=False,plot=True):
+        """
+        * Train the best model from the RandomizedSearch.
+        * Print model evalutation metrics: 
+            * RMSE
+            * Mean absolute error (MAE)
+            * R^2 score
+        Params:
+        - scale (bool): To scale data, pass the argument scaled=True. Default is False.
+            Should only be used if all variables are numeric.
+        - plot (bool): If true, plot true vs. predicted values using test data set from train-test split.
+
+        Returns: Best model from the RandomizedSearch.
+        Attributes:
+        - Same attributes as for the given estimator.
+        - Evaluation metrics for train and test data subsets:
+            - `.r2_train` and `.r2`
+            - `.rmse_train` and `.rmse`
+            - `.mean_abs_error_train` and `.mean_abs_error`
+        """
         if scaled==True:
             scaler = StandardScaler()
             self.X_train = scaler.fit_transform(self.X_train_pre)
@@ -58,8 +68,8 @@ class supervised:
         else:
             self.X_train = self.X_train_pre
             self.X_test = self.X_test_pre
-            print('**Data not scaled**')
-        search = RandomizedSearchCV(self.estimator, param_distributions=self.params, n_iter=4, random_state=0,n_jobs=-2,scoring='recall')
+            print('**No scaling performed**')
+        search = RandomizedSearchCV(self.estimator, param_distributions=self.params, n_iter=4, random_state=0,scoring=None)
         search.fit(self.X_train, self.y_train)
         best_model = search.best_estimator_
 
@@ -69,23 +79,27 @@ class supervised:
        
         # Metrics for test data
 
-        rmse = mean_squared_error(self.y_test, y_pred, squared=False)
-        mean_abs_error = mean_absolute_error(self.y_test, y_pred)
-        r2 = r2_score(self.y_test, y_pred)
+        self.rmse = mean_squared_error(self.y_test, y_pred, squared=False)
+        self.mean_abs_error = mean_absolute_error(self.y_test, y_pred)
+        self.r2 = r2_score(self.y_test, y_pred)
 
         # Metrics for training data
 
-        rmse_train = mean_squared_error(self.y_train, y_pred_train)
-        mean_abs_error_train = mean_absolute_error(self.y_train, y_pred_train)
-        r2_train = r2_score(self.y_train, y_pred_train)
+        self.rmse_train = mean_squared_error(self.y_train, y_pred_train)
+        self.mean_abs_error_train = mean_absolute_error(self.y_train, y_pred_train)
+        self.r2_train = r2_score(self.y_train, y_pred_train)
 
         print(f'\n{self.model_name} evaluation metrics: \n\tTest data\tTraining data\t\tDifference')
-        print(f'RMSE: \t\t{rmse:.2f}\t\t{rmse_train:.2f}\t\t{(rmse - rmse_train):.2f}')
-        print(f'MAE: \t\t{mean_abs_error:.2f}\t\t{mean_abs_error_train:.2f}\t\t{(mean_abs_error - mean_abs_error_train):.2f}')
-        print(f'R^2: \t\t{r2:.2f}\t\t{r2:.2f}\t\t{(r2 - r2_train):.2f}')
+        print(f'RMSE: \t\t{self.rmse:.2f}\t\t{self.rmse_train:.2f}\t\t{(self.rmse - self.rmse_train):.2f}')
+        print(f'MAE: \t\t{self.mean_abs_error:.2f}\t\t{self.mean_abs_error_train:.2f}\t\t{(self.mean_abs_error - self.mean_abs_error_train):.2f}')
+        print(f'R^2: \t\t{self.r2:.2f}\t\t{self.r2_train:.2f}\t\t{(self.r2 - self.r2_train):.2f}')
         
         print(f'Best model parameters from randomized search: {search.best_params_}')
 
+        if plot:
+            self.fig = sns.scatterplot(x=self.y_test, y=y_pred)
+            self.fig.set_xlabel('Predicted')
+        
         return best_model
 
 # # Example on how to call it for  Logistical regression
