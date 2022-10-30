@@ -1,5 +1,5 @@
 import pandas as pd
- 
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -393,7 +393,7 @@ def fill_missing(df, dict, inplace=True, fill_w_mean=False):
             df[column_to_fill].fillna(df[column].agg('mean'), inplace=True)
     return df
 
-def scale_data(df, numeric_cols, cat_cols):
+def scale_data(df, numeric_cols, cat_cols, scaler=None):
     """
     - Perform standardization (StandardScaler) on the numeric_cols of the dataframe. 
     - combines both numeric and categorical back to the entire feature dataframe.
@@ -402,17 +402,28 @@ def scale_data(df, numeric_cols, cat_cols):
     - df: Dataframe object with both feature and target data. 
     - numeric_cols: Name of the numeric columns to be scaled.
     - cat_cols: Name of the categorical columns (dummy variables) NOT to be scaled.
+    - scaler (optional): Provide fitted scaler option to fit data on. Default is None.
 
     Returns: 
-    - Dataframe with numeric data scaled and categorical data as-is.
+    - Dataframe with numeric data scaled and categorical data as-is. Original index retained
     - Scaler for subsequent use
     """
     # Create the scaler based on the training dataset
-    scaler = StandardScaler()
-    scaler.fit(df[numeric_cols])
-    X_numeric_scaled = scaler.transform(df[numeric_cols])
-    X_categorical = df[cat_cols].to_numpy()
-    X = pd.DataFrame(np.hstack((X_categorical, X_numeric_scaled)), columns=cat_cols + numeric_cols)
+    if scaler:
+        scaler = scaler
+        print('Supplied scaler applied.')
+    else:
+        scaler = StandardScaler()
+        print('New scaler created.')
+    scaler.fit(df.filter(numeric_cols))
+    print('Scaler fit complete.')
+    X_numeric_scaled = scaler.transform(df.filter(numeric_cols))
+    print('Scaling complete.')
+    X_categorical = df.filter(cat_cols).to_numpy()
+    # X = pd.DataFrame(np.hstack((X_categorical, X_numeric_scaled)))
+    X = pd.DataFrame(np.hstack((X_categorical, X_numeric_scaled)), 
+    index=df.index,
+    columns=cat_cols + numeric_cols)
     return X, scaler
 
 # Define a function to fill missing values with the mean value in that column
