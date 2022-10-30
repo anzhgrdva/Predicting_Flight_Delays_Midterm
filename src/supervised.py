@@ -1,4 +1,4 @@
-from re import X
+# from re import X
 from sklearn.ensemble import RandomForestRegressor
 
 
@@ -39,18 +39,17 @@ class supervised:
     * Best model from random search
     """
     
-    
     def __init__(self, X, y, estimator, param_distributions, model_name):
-        X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8,random_state=0)
-        self.X_train_pre = X_train
-        self.X_test_pre =  X_test
-        self.y_train = y_train
-        self.y_test =  y_test
+        Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=0.8,random_state=0)
+        self.X_train_pre = Xtrain
+        self.X_test_pre =  Xtest
+        self.y_train = ytrain
+        self.y_test =  ytest
         self.estimator = estimator
         self.params = param_distributions
         self.model_name = model_name
 
-    def get_best_model(self,scaled=True):
+    def get_best_model(self,scaled=False):
         if scaled==True:
             scaler = StandardScaler()
             self.X_train = scaler.fit_transform(self.X_train_pre)
@@ -67,8 +66,7 @@ class supervised:
         y_pred = best_model.predict(self.X_test)
         y_pred_train = best_model.predict(self.X_train)
     
-    
-    
+       
         # Metrics for test data
 
         rmse = mean_squared_error(self.y_test, y_pred, squared=False)
