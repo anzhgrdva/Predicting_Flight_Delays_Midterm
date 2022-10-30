@@ -8,6 +8,9 @@ data/steps/
 
 models/*.sav
 models/*.pkl
+models/*.pickle
+models/old/
+
 
 __pycache__/
 .ipynb_checkpoints/
