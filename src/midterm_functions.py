@@ -443,7 +443,7 @@ def fill_with_mean(df,columns,agg='mean',inplace=True):
     return df
 
 # Perform PCA: SH 2022-10-27 
-def run_pca(df, n_components=2, column_range=None, cluster_col=None):
+def run_pca(df, n_components=2, column_range=None, cluster_col=None,plot=False):
     """
     Run a PCA, then plot data along the first 2 PC dimensions and the projections.
 
@@ -475,50 +475,51 @@ def run_pca(df, n_components=2, column_range=None, cluster_col=None):
 
     # rename the columns from the PCA dataframe result
     loadings.columns = columns
-
+    
     # plot PCA showing both KMeans clusters and AC clusters
-    # To plot the raw data along with the loading plot, scale the raw data down:
-    xscale = 1/(data_pca[0].max()-data_pca[0].min())
-    yscale = 1/(data_pca[1].max()-data_pca[1].min())
-    # Make the plots
-    fig, ax = plt.subplots(ncols=2,nrows=1,figsize=(12,5))
+    if plot:
+        # To plot the raw data along with the loading plot, scale the raw data down:
+        xscale = 1/(data_pca[0].max()-data_pca[0].min())
+        yscale = 1/(data_pca[1].max()-data_pca[1].min())
+        # Make the plots
+        fig, ax = plt.subplots(ncols=2,nrows=1,figsize=(12,5))
 
-    # Plot showing KMeans clusters
-    if cluster_col:
-        clustering_col1 = df.columns[cluster_col[0]]
+        # Plot showing KMeans clusters
+        if cluster_col:
+            clustering_col1 = df.columns[cluster_col[0]]
 
-        sns.scatterplot(
-            x=data_pca[0]*xscale,y=data_pca[1]*yscale,
-            hue=df[clustering_col1].values,
-            ax=ax[0]
-            )
-        for feature, vector in loadings.items():
-            # Plot each feature using the two principal components as axes
-            ax[0].arrow(0,0,vector[0],vector[1]) 
-            # Label each arrow at the tip of the line
-            if (vector[0] > loadings.loc[0,:].mean()) | (vector[1] > loadings.loc[1,:].mean()):
-                ax[0].text(vector[0],vector[1],feature)
-                print('Feature vector component above average: ',feature)
-        ax[0].set_xlabel('PC1')
-        ax[0].set_ylabel('PC2')
-        ax[0].set_title(clustering_col1)
-        
-        # Plot showing AC clusters
-        if len(cluster_col) == 2:
-            clustering_col2 = df.columns[cluster_col[-1]]
             sns.scatterplot(
                 x=data_pca[0]*xscale,y=data_pca[1]*yscale,
-                hue=df[clustering_col2].values,
-                ax=ax[1]
+                hue=df[clustering_col1].values,
+                ax=ax[0]
                 )
             for feature, vector in loadings.items():
                 # Plot each feature using the two principal components as axes
-                ax[1].arrow(0,0,vector[0],vector[1]) 
+                ax[0].arrow(0,0,vector[0],vector[1]) 
                 # Label each arrow at the tip of the line
                 if (vector[0] > loadings.loc[0,:].mean()) | (vector[1] > loadings.loc[1,:].mean()):
-                    ax[1].text(vector[0],vector[1],feature)
-            ax[1].set_xlabel('PC1')
-            ax[1].set_ylabel('PC2')
-            ax[1].set_title(clustering_col2)
+                    ax[0].text(vector[0],vector[1],feature)
+                    print('Feature vector component above average: ',feature)
+            ax[0].set_xlabel('PC1')
+            ax[0].set_ylabel('PC2')
+            ax[0].set_title(clustering_col1)
+            
+            # Plot showing AC clusters
+            if len(cluster_col) == 2:
+                clustering_col2 = df.columns[cluster_col[-1]]
+                sns.scatterplot(
+                    x=data_pca[0]*xscale,y=data_pca[1]*yscale,
+                    hue=df[clustering_col2].values,
+                    ax=ax[1]
+                    )
+                for feature, vector in loadings.items():
+                    # Plot each feature using the two principal components as axes
+                    ax[1].arrow(0,0,vector[0],vector[1]) 
+                    # Label each arrow at the tip of the line
+                    if (vector[0] > loadings.loc[0,:].mean()) | (vector[1] > loadings.loc[1,:].mean()):
+                        ax[1].text(vector[0],vector[1],feature)
+                ax[1].set_xlabel('PC1')
+                ax[1].set_ylabel('PC2')
+                ax[1].set_title(clustering_col2)
 
     return data_pca
